@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Shield, Sparkles, Upload, FileText, ArrowRight } from "lucide-react";
+import { Shield, Sparkles, Upload, FileText, ArrowRight, History } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AnalysisResults, type AnalysisData } from "@/components/AnalysisResults";
@@ -27,7 +28,22 @@ export default function Index() {
         body: { text },
       });
       if (error) throw error;
-      setResults(data as AnalysisData);
+
+      const analysisData = data as AnalysisData;
+      setResults(analysisData);
+
+      // Save to database
+      const titleGuess = text.slice(0, 80).split("\n")[0].trim() || "Untitled Document";
+      await supabase.from("contract_analyses").insert({
+        document_title: titleGuess,
+        document_text: text.slice(0, 50000),
+        verdict: analysisData.verdict,
+        verdict_explanation: analysisData.verdictExplanation,
+        summary: analysisData.summary as any,
+        risks: analysisData.risks as any,
+        before_you_accept: (analysisData.beforeYouAccept || []) as any,
+        hidden_clauses: (analysisData.hiddenClauses || []) as any,
+      });
     } catch (err: any) {
       toast({
         title: "Analysis failed",
@@ -53,7 +69,6 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Ambient background glow */}
       <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/[0.04] rounded-full blur-[120px]" />
 
       {/* Header */}
@@ -67,9 +82,12 @@ export default function Index() {
               Fine<span className="text-gradient">Print</span>
             </h1>
           </div>
-          <p className="text-sm text-muted-foreground hidden sm:block tracking-wide uppercase text-xs font-medium">
-            AI Contract Analyzer
-          </p>
+          <Link to="/history">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+              <History className="h-4 w-4" />
+              History
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -132,9 +150,7 @@ export default function Index() {
           {/* Right: Results */}
           <div className="lg:sticky lg:top-24">
             {isAnalyzing && <LoadingState />}
-
             {results && !isAnalyzing && <AnalysisResults data={results} />}
-
             {!results && !isAnalyzing && (
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="h-16 w-16 rounded-2xl bg-muted/30 flex items-center justify-center border border-border/30">
