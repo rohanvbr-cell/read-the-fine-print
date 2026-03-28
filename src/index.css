@@ -9,29 +9,29 @@
     --background: 222 47% 5%;
     --foreground: 210 20% 95%;
 
-    --card: 222 40% 8%;
+    --card: 220 35% 11%;
     --card-foreground: 210 20% 95%;
 
-    --popover: 222 40% 8%;
+    --popover: 220 35% 11%;
     --popover-foreground: 210 20% 95%;
 
     --primary: 199 89% 48%;
     --primary-foreground: 222 47% 5%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 15% 75%;
+    --secondary: 220 25% 18%;
+    --secondary-foreground: 210 15% 82%;
 
-    --muted: 222 25% 12%;
-    --muted-foreground: 215 15% 48%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 215 15% 55%;
 
-    --accent: 222 30% 16%;
+    --accent: 220 25% 20%;
     --accent-foreground: 210 20% 95%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222 20% 14%;
-    --input: 222 20% 14%;
+    --border: 220 20% 20%;
+    --input: 220 20% 18%;
     --ring: 199 89% 48%;
 
     --radius: 0.625rem;
@@ -46,13 +46,13 @@
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
 
-    --sidebar-background: 222 40% 8%;
+    --sidebar-background: 220 35% 11%;
     --sidebar-foreground: 210 20% 95%;
     --sidebar-primary: 199 89% 48%;
     --sidebar-primary-foreground: 222 47% 5%;
-    --sidebar-accent: 222 30% 14%;
+    --sidebar-accent: 220 25% 18%;
     --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 222 20% 14%;
+    --sidebar-border: 220 20% 20%;
     --sidebar-ring: 199 89% 48%;
   }
 }
@@ -74,11 +74,11 @@
 
 @layer utilities {
   .glass-surface {
-    @apply bg-card/50 backdrop-blur-xl border border-border/40;
+    @apply bg-card backdrop-blur-xl border border-border;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-[hsl(220,70%,65%)];
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-[hsl(180,70%,55%)] to-[hsl(220,70%,65%)];
   }
 
   .animate-pulse-subtle {
@@ -88,5 +88,9 @@
   @keyframes pulse-subtle {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
+  }
+
+  .glow-border {
+    box-shadow: 0 0 0 1px hsl(var(--border)), 0 0 20px -5px hsl(var(--primary) / 0.15);
   }
 }
