@@ -23,10 +23,22 @@ export default function Index() {
     setIsAnalyzing(true);
     setResults(null);
 
-    // Simulate AI delay — will be replaced with real AI call
-    await new Promise((r) => setTimeout(r, 2500));
-    setResults(MOCK_RESULT);
-    setIsAnalyzing(false);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-contract", {
+        body: { text },
+      });
+
+      if (error) throw error;
+      setResults(data as AnalysisData);
+    } catch (err: any) {
+      toast({
+        title: "Analysis failed",
+        description: err?.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
