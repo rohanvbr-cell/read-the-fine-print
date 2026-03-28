@@ -5,28 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { AnalysisResults, type AnalysisData } from "@/components/AnalysisResults";
 import { LoadingState } from "@/components/LoadingState";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-const MOCK_RESULT: AnalysisData = {
-  summary: [
-    "This is a subscription service that auto-renews every year unless you cancel 30 days before renewal.",
-    "They collect and share your usage data with third-party advertising partners.",
-    "You agree to resolve all disputes through binding arbitration, waiving your right to a jury trial.",
-    "The company can change pricing at any time with only 14 days notice via email.",
-  ],
-  risks: [
-    { label: "Auto-Renewal", explanation: "Your subscription renews automatically. You must cancel at least 30 days before the renewal date or you'll be charged for another full year." },
-    { label: "Data Sharing", explanation: "Your personal data and usage patterns are shared with third-party advertisers and analytics companies." },
-    { label: "Price Changes", explanation: "They can increase the price at any time with just 14 days email notice — easy to miss." },
-    { label: "No Refunds", explanation: "All payments are non-refundable, even if you cancel mid-cycle or are unsatisfied with the service." },
-  ],
-  hiddenClauses: [
-    "By using the service, you grant them a perpetual, irrevocable license to use any content you upload — even after you delete your account.",
-    "The arbitration clause includes a class action waiver, meaning you can't join a group lawsuit against them.",
-    "They reserve the right to suspend your account 'at their sole discretion' without providing a specific reason.",
-  ],
-  verdict: "caution",
-  verdictExplanation: "This agreement has several concerning clauses including aggressive data sharing, auto-renewal traps, and a broad content license. While not uncommon, users should be aware of what they're agreeing to.",
-};
 
 export default function Index() {
   const [text, setText] = useState("");
@@ -43,10 +23,22 @@ export default function Index() {
     setIsAnalyzing(true);
     setResults(null);
 
-    // Simulate AI delay — will be replaced with real AI call
-    await new Promise((r) => setTimeout(r, 2500));
-    setResults(MOCK_RESULT);
-    setIsAnalyzing(false);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-contract", {
+        body: { text },
+      });
+
+      if (error) throw error;
+      setResults(data as AnalysisData);
+    } catch (err: any) {
+      toast({
+        title: "Analysis failed",
+        description: err?.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
