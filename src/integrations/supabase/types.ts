@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contract_analyses: {
+        Row: {
+          before_you_accept: Json | null
+          created_at: string
+          document_text: string
+          document_title: string | null
+          hidden_clauses: Json | null
+          id: string
+          risks: Json
+          summary: Json
+          verdict: string
+          verdict_explanation: string
+        }
+        Insert: {
+          before_you_accept?: Json | null
+          created_at?: string
+          document_text: string
+          document_title?: string | null
+          hidden_clauses?: Json | null
+          id?: string
+          risks?: Json
+          summary?: Json
+          verdict: string
+          verdict_explanation: string
+        }
+        Update: {
+          before_you_accept?: Json | null
+          created_at?: string
+          document_text?: string
+          document_title?: string | null
+          hidden_clauses?: Json | null
+          id?: string
+          risks?: Json
+          summary?: Json
+          verdict?: string
+          verdict_explanation?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
