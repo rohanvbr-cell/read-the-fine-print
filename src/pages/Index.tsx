@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AnalysisResults, type AnalysisData } from "@/components/AnalysisResults";
 import { LoadingState } from "@/components/LoadingState";
+import { ContractChat } from "@/components/ContractChat";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -94,20 +95,21 @@ export default function Index() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-10 relative">
-        <div className="grid gap-10 lg:grid-cols-2 items-start">
-          {/* Left: Input */}
-          <div className="space-y-5">
-            <div>
-              <h2 className="font-display text-3xl font-bold tracking-tight text-foreground leading-tight">
-                Understand what<br />you're agreeing to
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-md">
-                Paste any terms of service, contract, or agreement. We'll highlight risks, hidden clauses, and give you a clear verdict.
-              </p>
-            </div>
+        {/* Title row */}
+        <div className="mb-8">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-foreground leading-tight">
+            Understand what you're agreeing to
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-lg">
+            Paste any terms of service, contract, or agreement. We'll highlight risks, hidden clauses, and give you a clear verdict.
+          </p>
+        </div>
 
-            {/* Textarea with visible card wrapper */}
-            <div className="rounded-xl bg-card border border-border p-1 glow-border">
+        <div className="grid gap-8 lg:grid-cols-2 items-stretch">
+          {/* Left: Input */}
+          <div className="flex flex-col gap-4">
+            {/* Textarea card — fills available height */}
+            <div className="rounded-xl bg-card border border-border p-1 glow-border flex-1 flex flex-col min-h-[420px]">
               <div className="flex items-center gap-2 px-3 py-2 border-b border-border/60">
                 <ClipboardPaste className="h-3.5 w-3.5 text-primary/70" />
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Document Input</span>
@@ -121,7 +123,7 @@ export default function Index() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Paste your terms & conditions, contract, or agreement here..."
-                className="min-h-[350px] resize-none border-0 bg-transparent font-body text-sm leading-relaxed placeholder:text-muted-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-b-lg"
+                className="flex-1 resize-none border-0 bg-transparent font-body text-sm leading-relaxed placeholder:text-muted-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-b-lg"
               />
             </div>
 
@@ -154,18 +156,22 @@ export default function Index() {
           </div>
 
           {/* Right: Results */}
-          <div className="lg:sticky lg:top-24">
-            {isAnalyzing && <LoadingState />}
+          <div className="flex flex-col">
+            {isAnalyzing && (
+              <div className="rounded-xl border border-dashed border-border bg-card/50 flex-1 flex items-center justify-center min-h-[420px]">
+                <LoadingState />
+              </div>
+            )}
             {results && !isAnalyzing && <AnalysisResults data={results} />}
             {!results && !isAnalyzing && (
-              <div className="rounded-xl border border-dashed border-border bg-card/50 flex flex-col items-center justify-center py-20 text-center">
+              <div className="rounded-xl border border-dashed border-border bg-card/50 flex flex-col items-center justify-center flex-1 min-h-[420px] text-center px-6">
                 <div className="h-16 w-16 rounded-2xl bg-secondary flex items-center justify-center border border-border">
                   <Scan className="h-7 w-7 text-muted-foreground" />
                 </div>
                 <p className="mt-5 font-display text-lg font-semibold text-foreground/70">
                   Analysis Results
                 </p>
-                <p className="mt-1.5 text-sm text-muted-foreground max-w-[240px]">
+                <p className="mt-1.5 text-sm text-muted-foreground max-w-[260px]">
                   Paste a contract on the left and click <span className="text-primary font-medium">Analyze</span> to see your breakdown
                 </p>
                 <div className="mt-6 flex items-center gap-4 text-xs text-muted-foreground/60">
@@ -178,6 +184,11 @@ export default function Index() {
           </div>
         </div>
       </main>
+
+      {/* Chat bot — only shows after analysis */}
+      {results && text && (
+        <ContractChat documentText={text} analysisData={results} />
+      )}
     </div>
   );
 }
