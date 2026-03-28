@@ -57,7 +57,12 @@ JSON structure:
 ## TONE
 - Talk like a smart friend who read the contract for you.
 - Never use legal jargon. If you reference a legal concept, explain it in plain English.
-- Be direct about what could go wrong.`;
+- Be direct about what could go wrong.
+
+## LANGUAGE
+- CRITICAL: Detect the language of the input document. Your ENTIRE response (all JSON string values) MUST be written in the SAME language as the input document.
+- If the document is in Spanish, respond in Spanish. If in French, respond in French. And so on.
+- Only the JSON keys must remain in English (verdict, summary, risks, etc). The VALUES must match the document's language.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

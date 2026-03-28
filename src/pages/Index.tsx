@@ -85,7 +85,7 @@ export default function Index() {
             </h1>
           </div>
           <Link to="/history">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+            <Button variant="outline" size="sm" className="gap-2 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/60">
               <History className="h-4 w-4" />
               History
             </Button>
