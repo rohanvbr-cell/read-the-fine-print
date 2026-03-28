@@ -63,6 +63,14 @@ export default {
           DEFAULT: "hsl(var(--risky))",
           foreground: "hsl(var(--risky-foreground))",
         },
+        caution: {
+          DEFAULT: "hsl(var(--caution))",
+          foreground: "hsl(var(--caution-foreground))",
+        },
+        risky: {
+          DEFAULT: "hsl(var(--risky))",
+          foreground: "hsl(var(--risky-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
