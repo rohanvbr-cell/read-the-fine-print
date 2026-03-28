@@ -1,10 +1,11 @@
-import { Shield, AlertTriangle, Eye, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Shield, AlertTriangle, Eye, CheckCircle, XCircle, AlertCircle, Lightbulb } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface AnalysisData {
   summary: string[];
-  risks: { label: string; explanation: string }[];
-  hiddenClauses: string[];
+  risks: { label: string; severity?: "high" | "medium" | "low"; explanation: string }[];
+  hiddenClauses?: string[];
+  beforeYouAccept?: string[];
   verdict: "safe" | "caution" | "risky";
   verdictExplanation: string;
 }
@@ -12,15 +13,15 @@ export interface AnalysisData {
 const verdictConfig = {
   safe: {
     icon: CheckCircle,
-    label: "Safe",
-    emoji: "✅",
+    label: "Safe to Sign",
+    emoji: "🟢",
     colorClass: "text-safe",
     bgClass: "bg-safe/5 border-safe/20",
     pillClass: "bg-safe/10 text-safe",
   },
   caution: {
     icon: AlertCircle,
-    label: "Caution",
+    label: "Proceed with Caution",
     emoji: "⚠️",
     colorClass: "text-caution",
     bgClass: "bg-caution/5 border-caution/20",
@@ -28,12 +29,18 @@ const verdictConfig = {
   },
   risky: {
     icon: XCircle,
-    label: "Risky",
-    emoji: "❌",
+    label: "Risky Agreement",
+    emoji: "🔴",
     colorClass: "text-risky",
     bgClass: "bg-risky/5 border-risky/20",
     pillClass: "bg-risky/10 text-risky",
   },
+};
+
+const severityConfig = {
+  high: { label: "High", dotClass: "bg-risky", badgeClass: "bg-risky/10 text-risky border-risky/20" },
+  medium: { label: "Medium", dotClass: "bg-caution", badgeClass: "bg-caution/10 text-caution border-caution/20" },
+  low: { label: "Low", dotClass: "bg-safe", badgeClass: "bg-safe/10 text-safe border-safe/20" },
 };
 
 export function AnalysisResults({ data }: { data: AnalysisData }) {
@@ -43,8 +50,8 @@ export function AnalysisResults({ data }: { data: AnalysisData }) {
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Verdict — top */}
-      <Card className={`border ${verdict.bgClass} overflow-hidden`}>
-        <CardContent className="flex items-center gap-4 p-5">
+      <Card className={`border-2 ${verdict.bgClass} overflow-hidden`}>
+        <CardContent className="flex items-start gap-4 p-5">
           <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${verdict.pillClass}`}>
             <VerdictIcon className="h-6 w-6" />
           </div>
@@ -52,7 +59,7 @@ export function AnalysisResults({ data }: { data: AnalysisData }) {
             <div className={`text-xl font-display font-bold ${verdict.colorClass}`}>
               {verdict.emoji} {verdict.label}
             </div>
-            <p className="mt-0.5 text-sm text-secondary-foreground leading-relaxed">{data.verdictExplanation}</p>
+            <p className="mt-1 text-sm text-foreground/70 leading-relaxed">{data.verdictExplanation}</p>
           </div>
         </CardContent>
       </Card>
@@ -62,7 +69,7 @@ export function AnalysisResults({ data }: { data: AnalysisData }) {
         <CardHeader className="pb-2 pt-4 px-5">
           <CardTitle className="flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-muted-foreground">
             <Shield className="h-4 w-4 text-primary" />
-            Summary
+            What This Means for You
           </CardTitle>
         </CardHeader>
         <CardContent className="px-5 pb-4">
@@ -77,40 +84,69 @@ export function AnalysisResults({ data }: { data: AnalysisData }) {
         </CardContent>
       </Card>
 
-      {/* Risks */}
+      {/* Risks with severity */}
       {data.risks.length > 0 && (
         <Card className="glass-surface">
           <CardHeader className="pb-2 pt-4 px-5">
             <CardTitle className="flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-muted-foreground">
               <AlertTriangle className="h-4 w-4 text-caution" />
-              Key Risks
+              Risk Breakdown
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
-            <div className="grid gap-2.5">
-              {data.risks.map((risk, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 rounded-lg bg-background/40 p-3"
-                >
-                  <span className="shrink-0 rounded-md bg-caution/10 px-2 py-0.5 text-[11px] font-semibold text-caution uppercase tracking-wide">
-                    {risk.label}
-                  </span>
-                  <span className="text-sm text-foreground/70 leading-relaxed">{risk.explanation}</span>
-                </div>
-              ))}
+            <div className="grid gap-3">
+              {data.risks.map((risk, i) => {
+                const sev = severityConfig[risk.severity || "medium"];
+                return (
+                  <div
+                    key={i}
+                    className="rounded-lg bg-background/40 p-3.5 border border-border/20"
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${sev.badgeClass}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${sev.dotClass}`} />
+                        {sev.label}
+                      </span>
+                      <span className="text-sm font-semibold text-foreground/90">{risk.label}</span>
+                    </div>
+                    <p className="text-sm text-foreground/60 leading-relaxed pl-0.5">{risk.explanation}</p>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Hidden Clauses */}
-      {data.hiddenClauses.length > 0 && (
+      {/* Before You Accept */}
+      {data.beforeYouAccept && data.beforeYouAccept.length > 0 && (
+        <Card className="glass-surface border-primary/10">
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              <Lightbulb className="h-4 w-4 text-primary" />
+              Before You Accept This
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4">
+            <ul className="space-y-2.5">
+              {data.beforeYouAccept.map((tip, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm text-foreground/80 leading-relaxed">
+                  <span className="mt-0.5 text-primary font-bold text-xs">{i + 1}.</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Legacy support for hiddenClauses if present */}
+      {data.hiddenClauses && data.hiddenClauses.length > 0 && (
         <Card className="glass-surface">
           <CardHeader className="pb-2 pt-4 px-5">
             <CardTitle className="flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-muted-foreground">
               <Eye className="h-4 w-4 text-risky" />
-              What They Don't Want You to Notice
+              Hidden Clauses
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
