@@ -170,6 +170,13 @@ export default function HistoryPage() {
           </>
         )}
       </main>
+
+      {selected && (
+        <ContractChat
+          documentText={selected.document_text}
+          analysisData={toAnalysisData(selected)}
+        />
+      )}
     </div>
   );
 }
