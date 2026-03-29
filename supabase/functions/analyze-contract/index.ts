@@ -59,10 +59,12 @@ JSON structure:
 - Never use legal jargon. If you reference a legal concept, explain it in plain English.
 - Be direct about what could go wrong.
 
-## LANGUAGE
-- CRITICAL: Detect the language of the input document. Your ENTIRE response (all JSON string values) MUST be written in the SAME language as the input document.
-- If the document is in Spanish, respond in Spanish. If in French, respond in French. And so on.
-- Only the JSON keys must remain in English (verdict, summary, risks, etc). The VALUES must match the document's language.`;
+## LANGUAGE — THIS IS THE MOST IMPORTANT RULE
+- DETECT the language of the input document FIRST. Then write ALL JSON string values in THAT SAME language.
+- If the document is in English, ALL text values MUST be in English. If in Spanish, ALL in Spanish. If in French, ALL in French. No exceptions.
+- Only the JSON keys (verdict, summary, risks, etc.) stay in English. Every string VALUE must match the document's language.
+- NEVER default to Spanish or any other language. ALWAYS match the input language exactly.
+- Double-check before responding: "Is every string value in the same language as the input document?"`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -94,7 +96,7 @@ serve(async (req) => {
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Analyze this document and help me decide if it's safe to agree to:\n\n${text.slice(0, 15000)}` },
+          { role: "user", content: `IMPORTANT: Detect the language of the following document and respond ENTIRELY in that same language. If the document is in English, respond in English. Do NOT respond in a different language than the document.\n\nAnalyze this document and help me decide if it's safe to agree to:\n\n${text.slice(0, 15000)}` },
         ],
       }),
     });
