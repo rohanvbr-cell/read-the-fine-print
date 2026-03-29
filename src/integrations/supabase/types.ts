@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          contract_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          contract_id: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          contract_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "saved_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_analyses: {
         Row: {
           before_you_accept: Json | null
@@ -52,6 +87,98 @@ export type Database = {
           verdict_explanation?: string
         }
         Relationships: []
+      }
+      folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      saved_contracts: {
+        Row: {
+          before_you_accept: Json | null
+          created_at: string
+          document_text: string
+          folder_id: string | null
+          hidden_clauses: Json | null
+          id: string
+          risks: Json
+          summary: Json
+          title: string
+          user_id: string
+          verdict: string
+          verdict_explanation: string
+        }
+        Insert: {
+          before_you_accept?: Json | null
+          created_at?: string
+          document_text: string
+          folder_id?: string | null
+          hidden_clauses?: Json | null
+          id?: string
+          risks?: Json
+          summary?: Json
+          title?: string
+          user_id: string
+          verdict: string
+          verdict_explanation: string
+        }
+        Update: {
+          before_you_accept?: Json | null
+          created_at?: string
+          document_text?: string
+          folder_id?: string | null
+          hidden_clauses?: Json | null
+          id?: string
+          risks?: Json
+          summary?: Json
+          title?: string
+          user_id?: string
+          verdict?: string
+          verdict_explanation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_contracts_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
