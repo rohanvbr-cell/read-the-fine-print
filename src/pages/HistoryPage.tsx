@@ -79,7 +79,7 @@ export default function HistoryPage() {
 
       <main className="container mx-auto px-6 py-10 relative">
         {selected ? (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <button
               onClick={() => setSelected(null)}
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -93,7 +93,24 @@ export default function HistoryPage() {
             <p className="text-sm text-muted-foreground mb-6">
               Analyzed on {new Date(selected.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             </p>
-            <AnalysisResults data={toAnalysisData(selected)} />
+
+            <div className="grid gap-8 lg:grid-cols-2 items-start">
+              {/* Original Document */}
+              <div className="rounded-xl bg-card border border-border p-1 flex flex-col min-h-[400px]">
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-border/60">
+                  <ClipboardPaste className="h-3.5 w-3.5 text-primary/70" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Original Document</span>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap max-h-[600px]">
+                  {selected.document_text}
+                </div>
+              </div>
+
+              {/* Analysis Results */}
+              <div>
+                <AnalysisResults data={toAnalysisData(selected)} />
+              </div>
+            </div>
           </div>
         ) : (
           <>
