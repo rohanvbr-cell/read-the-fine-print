@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Shield, ArrowLeft, FileText, CheckCircle, AlertCircle, XCircle, Trash2 } from "lucide-react";
+import { Shield, ArrowLeft, FileText, CheckCircle, AlertCircle, XCircle, ClipboardPaste } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { AnalysisResults, type AnalysisData } from "@/components/AnalysisResults";
+import { ContractChat } from "@/components/ContractChat";
 
 interface SavedAnalysis {
   id: string;
   document_title: string | null;
+  document_text: string;
   verdict: string;
   verdict_explanation: string;
   summary: any;
