@@ -126,8 +126,27 @@ serve(async (req) => {
       throw new Error("No content in AI response");
     }
 
-    const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    const analysis = JSON.parse(jsonStr);
+    let jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    
+    // Fix common JSON issues from AI output
+    // Remove trailing commas before ] or }
+    jsonStr = jsonStr.replace(/,\s*([}\]])/g, "$1");
+    // Remove any text before the first { or after the last }
+    const firstBrace = jsonStr.indexOf("{");
+    const lastBrace = jsonStr.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+    }
+
+    let analysis;
+    try {
+      analysis = JSON.parse(jsonStr);
+    } catch (parseErr) {
+      console.error("JSON parse failed, raw content:", content.slice(0, 500));
+      // Try a more aggressive cleanup: remove control characters
+      jsonStr = jsonStr.replace(/[\x00-\x1f\x7f]/g, (ch) => ch === "\n" || ch === "\t" ? ch : "");
+      analysis = JSON.parse(jsonStr);
+    }
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
