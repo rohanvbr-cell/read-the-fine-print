@@ -38,7 +38,7 @@ export default function HistoryPage() {
   const fetchAnalyses = async () => {
     const { data } = await supabase
       .from("contract_analyses")
-      .select("id, document_title, verdict, verdict_explanation, summary, risks, before_you_accept, hidden_clauses, created_at")
+      .select("id, document_title, document_text, verdict, verdict_explanation, summary, risks, before_you_accept, hidden_clauses, created_at")
       .order("created_at", { ascending: false });
     setAnalyses(data || []);
     setLoading(false);
