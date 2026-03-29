@@ -3,6 +3,7 @@ import { MessageCircle, Send, X, Bot, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import type { AnalysisData } from "@/components/AnalysisResults";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,17 +13,36 @@ interface Message {
 interface ContractChatProps {
   documentText: string;
   analysisData: AnalysisData;
+  contractId?: string;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/contract-chat`;
 
-export function ContractChat({ documentText, analysisData }: ContractChatProps) {
+export function ContractChat({ documentText, analysisData, contractId }: ContractChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadedHistory, setLoadedHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load chat history if contractId provided
+  useEffect(() => {
+    if (contractId && !loadedHistory) {
+      supabase
+        .from("chat_messages")
+        .select("role, content")
+        .eq("contract_id", contractId)
+        .order("created_at", { ascending: true })
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setMessages(data.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })));
+          }
+          setLoadedHistory(true);
+        });
+    }
+  }, [contractId, loadedHistory]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -36,6 +56,18 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
     }
   }, [isOpen]);
 
+  const persistMessage = async (role: "user" | "assistant", content: string) => {
+    if (!contractId) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("chat_messages").insert({
+      contract_id: contractId,
+      user_id: user.id,
+      role,
+      content,
+    });
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -44,6 +76,9 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
     setMessages(allMessages);
     setInput("");
     setIsLoading(true);
+
+    // Persist user message
+    await persistMessage("user", userMsg.content);
 
     let assistantSoFar = "";
 
@@ -136,6 +171,11 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
           } catch { /* ignore */ }
         }
       }
+
+      // Persist assistant message
+      if (assistantSoFar) {
+        await persistMessage("assistant", assistantSoFar);
+      }
     } catch (e: any) {
       setMessages((prev) => [...prev, { role: "assistant", content: `Sorry, something went wrong: ${e.message}` }]);
     } finally {
@@ -162,7 +202,6 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
 
   return (
     <div className="fixed bottom-6 right-6 w-[400px] h-[520px] rounded-2xl bg-card border border-border shadow-2xl shadow-background/80 flex flex-col z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
@@ -178,7 +217,6 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
         </button>
       </div>
 
-      {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="space-y-2">
@@ -187,7 +225,7 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
               {suggestedQuestions.map((q) => (
                 <button
                   key={q}
-                  onClick={() => { setInput(q); }}
+                  onClick={() => setInput(q)}
                   className="text-xs px-2.5 py-1.5 rounded-lg bg-secondary border border-border text-foreground/80 hover:bg-accent transition-colors"
                 >
                   {q}
@@ -206,9 +244,7 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
             )}
             <div
               className={`max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
-                msg.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-foreground"
+                msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
               }`}
             >
               {msg.role === "assistant" ? (
@@ -243,12 +279,8 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
         )}
       </div>
 
-      {/* Input */}
       <div className="px-3 py-3 border-t border-border">
-        <form
-          onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-          className="flex items-center gap-2"
-        >
+        <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-2">
           <input
             ref={inputRef}
             type="text"
@@ -257,12 +289,7 @@ export function ContractChat({ documentText, analysisData }: ContractChatProps) 
             placeholder="Ask about this contract..."
             className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
           />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!input.trim() || isLoading}
-            className="h-9 w-9 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
-          >
+          <Button type="submit" size="icon" disabled={!input.trim() || isLoading} className="h-9 w-9 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </form>
